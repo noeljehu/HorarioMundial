@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Configuración del documento -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hora Mundial Actual</title>
+
+  <style>
+    /* Reset básico para márgenes, paddings y box-sizing */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Estilos para el cuerpo: fondo degradado, centrado y fuente */
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1e3a8a 0%, #7e22ce 70%, #f59e42 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Roboto', sans-serif;
+      color: #111827;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Contenedor para las burbujas animadas de fondo */
+    .burbujas {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      top: 0; left: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    /* Estilo general de las burbujas */
+    .burbuja {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.18;
+      animation: subir 16s infinite ease-in;
+      background: linear-gradient(135deg, #fff8, #a5b4fc 80%);
+    }
+
+    /* Tamaños y posiciones individuales para cada burbuja con diferentes delays */
+    .burbuja.b1 { width: 100px; height: 100px; left: 10vw; animation-delay: 0s;}
+    .burbuja.b2 { width: 60px; height: 60px; left: 40vw; animation-delay: 5s;}
+    .burbuja.b3 { width: 120px; height: 120px; left: 70vw; animation-delay: 3s;}
+    .burbuja.b4 { width: 80px; height: 80px; left: 90vw; animation-delay: 8s;}
+    .burbuja.b5 { width: 50px; height: 50px; left: 55vw; animation-delay: 12s;}
+
+    /* Animación para que las burbujas suban */
+    @keyframes subir {
+      0% { bottom: -120px; }
+      100% { bottom: 110vh; }
+    }
+
+    /* Tarjeta principal con fondo blanco translúcido y sombra */
+    .tarjeta {
+      position: relative;
+      background: rgba(255, 255, 255, 0.98);
+      padding: 2.8rem 2.2rem 2.2rem 2.2rem;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(55, 0, 70, 0.18), 0 1.5px 6px #7c3aed33;
+      text-align: center;
+      width: 100%;
+      max-width: 390px;
+      z-index: 1; /* Por encima del fondo de burbujas */
+      transition: box-shadow 0.2s;
+    }
+    /* Sombra más intensa al pasar el mouse */
+    .tarjeta:hover {
+      box-shadow: 0 16px 40px 0 rgba(55, 0, 70, 0.24), 0 2px 12px #7c3aed55;
+    }
+
+    /* Icono de reloj grande y colorido */
+    .icono-reloj {
+      font-size: 2.7rem;
+      color: #7c3aed;
+      margin-bottom: 0.7rem;
+      transition: transform 0.18s;
+    }
+    /* Animación al pasar el mouse sobre la tarjeta */
+    .tarjeta:hover .icono-reloj {
+      transform: scale(1.1) rotate(-10deg);
+      color: #f59e42;
+      filter: drop-shadow(0 0 8px #fb923c44);
+    }
+
+    /* Selector desplegable para zona horaria */
+    select {
+      padding: 0.85rem;
+      width: 100%;
+      font-size: 1.08rem;
+      border-radius: 9px;
+      border: 1.4px solid #e0e7ef;
+      background-color: #f3f4f6;
+      margin-bottom: 1.5rem;
+      outline: none;
+      box-shadow: 0 1.5px 7px #a78bfa1a;
+      transition: border 0.22s;
+    }
+    /* Estilo al enfocar el selector */
+    select:focus {
+      border: 2px solid #a78bfa;
+      background: #ede9fe;
+    }
+
+    /* Estilo para mostrar la hora en fuente monoespaciada */
+    #horaTexto {
+      font-size: 2.75rem;
+      font-family: 'Fira Mono', monospace;
+      font-weight: 700;
+      color: #1f2937;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.3rem;
+      text-shadow: 0 1px 7px #a5b4fc24;
+      transition: color 0.15s;
+    }
+
+    /* Fecha debajo de la hora */
+    #fechaTexto {
+      font-size: 1.15rem;
+      color: #7c3aed;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* Texto para mostrar la zona horaria seleccionada */
+    .zona {
+      font-size: 0.99rem;
+      color: #6b7280;
+      margin-top: 0.2rem;
+      letter-spacing: 0.01em;
+    }
+
+    /* Pie de tarjeta con créditos */
+    .footer {
+      margin-top: 2.2rem;
+      font-size: 0.89rem;
+      color: #a78bfa;
+      letter-spacing: 0.01em;
+      opacity: 0.65;
+    }
+
+    /* Contenedor para la búsqueda de país (input + botón) */
+    .busqueda-zona {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 1.4rem;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Input de búsqueda */
+    .busqueda-zona input {
+      flex: 1;
+      padding: 0.55rem 0.8rem;
+      border-radius: 8px;
+      border: 1.2px solid #a5b4fc;
+      font-size: 1rem;
+      background: #f5f3ff;
+      transition: border 0.18s;
+      outline: none;
+    }
+    /* Input enfocado */
+    .busqueda-zona input:focus {
+      border: 2px solid #7c3aed;
+      background: #ede9fe;
+    }
+    /* Botón de búsqueda */
+    .busqueda-zona button {
+      padding: 0.56rem 1rem;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #7c3aed 60%, #f59e42 100%);
+      color: white;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+    }
+    /* Botón presionado */
+    .busqueda-zona button:active {
+      background: #7c3aed;
+      transform: scale(0.97);
+    }
+    /* Mensajes de resultados de búsqueda */
+    .resultado-busqueda {
+      font-size: 0.98rem;
+      color: #6b7280;
+      margin-bottom: 1rem;
+      min-height: 1.1em; /* Reserva espacio para evitar saltos */
+    }
+
+    
+  </style>
+</head>
+<body>
+
+  <!-- Fondo animado con burbujas -->
+  <div class="burbujas">
+    <div class="burbuja b1"></div>
+    <div class="burbuja b2"></div>
+    <div class="burbuja b3"></div>
+    <div class="burbuja b4"></div>
+    <div class="burbuja b5"></div>
+  </div>
+
+  <!-- Tarjeta principal con selector, búsqueda y visualización -->
+  <div class="tarjeta">
+    <!-- Icono de reloj -->
+    <div class="icono-reloj" aria-label="Reloj">🕒</div>
+
+    <!-- Título principal -->
+    <h1>Selecciona una zona horaria</h1>
+
+    <!-- Formulario de búsqueda por país -->
+    <form class="busqueda-zona" id="formBusqueda">
+      <input
+        type="text"
+        id="inputPais"
+        placeholder="Buscar país (ejemplo: Argentina)"
+        aria-label="Buscar país"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button type="submit" aria-label="Buscar zona horaria por país">Buscar</button>
+    </form>
+
+    <!-- Mensaje para resultados o errores en búsqueda -->
+    <div class="resultado-busqueda" id="resultadoBusqueda"></div>
+
+    <!-- Selector de zona horaria -->
+    <select id="selectorZona" aria-label="Selector de zona horaria"></select>
+
+    <!-- Mostrar hora actual -->
+    <div id="horaTexto" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Mostrar fecha actual -->
+    <div id="fechaTexto"></div>
+
+    <!-- Mostrar nombre de zona horaria -->
+    <div class="zona" id="zonaTexto"></div>
+
+    <!-- Pie de tarjeta -->
+    <div class="footer">Creado por Noel, Ingeniería Informática</div>
+  </div>
+
+  <script>
+    // Referencias a elementos HTML clave para actualización dinámica
+    const selector = document.getElementById('selectorZona');
+    const horaTexto = document.getElementById('horaTexto');
+    const fechaTexto = document.getElementById('fechaTexto');
+    const zonaTexto = document.getElementById('zonaTexto');
+    const formBusqueda = document.getElementById('formBusqueda');
+    const inputPais = document.getElementById('inputPais');
+    const resultadoBusqueda = document.getElementById('resultadoBusqueda');
+
+    // Base manual simplificada de países y su zona horaria principal
+    // Solo un ejemplo para países comunes, puede ampliarse según necesidad
+    const paisesZonas = [
+      { pais: 'Argentina', zona: 'America/Argentina/Buenos_Aires' },
+      { pais: 'México', zona: 'America/Mexico_City' },
+      { pais: 'España', zona: 'Europe/Madrid' },
+      { pais: 'Colombia', zona: 'America/Bogota' },
+      { pais: 'Chile', zona: 'America/Santiago' },
+      { pais: 'Perú', zona: 'America/Lima' },
+      { pais: 'Estados Unidos', zona: 'America/New_York' }, 
+      { pais: 'Francia', zona: 'Europe/Paris' },
+      { pais: 'Brasil', zona: 'America/Sao_Paulo' },
+      { pais: 'Japón', zona: 'Asia/Tokyo' },
+      { pais: 'Rusia', zona: 'Europe/Moscow' },
+      { pais: 'India', zona: 'Asia/Kolkata' },
+      { pais: 'Australia', zona: 'Australia/Sydney' },
+      { pais: 'Alemania', zona: 'Europe/Berlin' },
+      { pais: 'Canadá', zona: 'America/Toronto' },
+      { pais: 'Italia', zona: 'Europe/Rome' },
+      { pais: 'Reino Unido', zona: 'Europe/London' },
+      { pais: 'Sudáfrica', zona: 'Africa/Johannesburg' },
+      { pais: 'Egipto', zona: 'Africa/Cairo' },
+      { pais: 'Turquía', zona: 'Europe/Istanbul' },
+      { pais: 'Suecia', zona: 'Europe/Stockholm' },
+      { pais: 'Noruega', zona: 'Europe/Oslo' },
+      { pais: 'Finlandia', zona: 'Europe/Helsinki' },
+      { pais: 'Grecia', zona: 'Europe/Athens' },
+      { pais: 'Bélgica', zona: 'Europe/Brussels' },
+      { pais: 'Suiza', zona: 'Europe/Zurich' },
+      { pais: 'Países Bajos', zona: 'Europe/Amsterdam' },
+      { pais: 'Dinamarca', zona: 'Europe/Copenhagen' },
+      { pais: 'Portugal', zona: 'Europe/Lisbon' },
+      { pais: 'Austria', zona: 'Europe/Vienna' },
+      { pais: 'Irlanda', zona: 'Europe/Dublin' },
+      { pais: 'Polonia', zona: 'Europe/Warsaw' },
+      { pais: 'República Checa', zona: 'Europe/Prague' },
+      { pais: 'Hungría', zona: 'Europe/Budapest' },
+      { pais: 'Rumanía', zona: 'Europe/Bucharest' },
+      { pais: 'Bulgaria', zona: 'Europe/Sofia' },
+      { pais: 'Ucrania', zona: 'Europe/Kiev' },
+      { pais: 'Serbia', zona: 'Europe/Belgrade' },
+      { pais: 'Croacia', zona: 'Europe/Zagreb' },
+      { pais: 'Eslovenia', zona: 'Europe/Ljubljana' },
+      { pais: 'Eslovaquia', zona: 'Europe/Bratislava' },
+      { pais: 'Lituania', zona: 'Europe/Vilnius' },
+      { pais: 'Letonia', zona: 'Europe/Riga' },
+      { pais: 'Estonia', zona: 'Europe/Tallinn' },
+      { pais: 'Islandia', zona: 'Atlantic/Reykjavik' },
+      { pais: 'Malta', zona: 'Europe/Malta' },
+      { pais: 'Luxemburgo', zona: 'Europe/Luxembourg' },
+      { pais: 'Mónaco', zona: 'Europe/Monaco' },
+      { pais: 'San Marino', zona: 'Europe/San_Marino' },
+      { pais: 'Liechtenstein', zona: 'Europe/Vaduz' },
+      { pais: 'Andorra', zona: 'Europe/Andorra' },
+      { pais: 'Chipre', zona: 'Asia/Nicosia' },
+      { pais: 'Kazajistán', zona: 'Asia/Almaty' },
+      { pais: 'Uzbekistán', zona: 'Asia/Tashkent' },
+      { pais: 'Tayikistán', zona: 'Asia/Dushanbe' },
+      { pais: 'Turkmenistán', zona: 'Asia/Ashgabat' },
+      { pais: 'Kirguistán', zona: 'Asia/Bishkek' }
+
+    ];
+
+    // Obtener todas las zonas horarias soportadas por Intl API
+    const zonas = Intl.supportedValuesOf('timeZone');
+
+    // Poblar el selector con todas las zonas horarias
+    zonas.forEach(zona => {
+      const option = document.createElement('option');
+      option.value = zona;
+      option.textContent = zona.replace('_', ' ');
+      selector.appendChild(option);
+    });
+
+    // Inicializar selector con zona horaria local detectada automáticamente
+    selector.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    // Función para obtener la hora formateada para la zona horaria dada
+    function obtenerHoraTexto(zona) {
+      const ahora = new Date();
+      return ahora.toLocaleTimeString('es-ES', {
+        timeZone: zona,
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    }
+
+    // Función para obtener la fecha formateada para la zona horaria dada
+    function obtenerFechaTexto(zona) {
+      const ahora = new Date();
+      return ahora.toLocaleDateString('es-ES', {
+        timeZone: zona,
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    }
+
+    // Función para actualizar la hora y fecha en el DOM
+    // Esta función se llama cada segundo para mantener la hora actualizada
+    function actualizarHora() {
+      const zonaSeleccionada = selector.value;
+      horaTexto.textContent = obtenerHoraTexto(zonaSeleccionada);
+      fechaTexto.textContent = obtenerFechaTexto(zonaSeleccionada);
+      zonaTexto.textContent = zonaSeleccionada;
+    }
+    // Manejo del evento de búsqueda de país
+    // Al enviar el formulario, se busca la zona horaria correspondiente al país ingresado
+    formBusqueda.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const paisBuscado = inputPais.value.trim().toLowerCase();
+      if (!paisBuscado) {
+        resultadoBusqueda.textContent = 'Por favor, ingresa el nombre de un país.';
+        return;
+      }
+
+      // Buscar país en la base de datos ignorando mayúsculas/minúsculas
+      const encontrado = paisesZonas.find(
+        (pz) => pz.pais.toLowerCase() === paisBuscado
+      );
+
+      if (encontrado) {
+        resultadoBusqueda.textContent = `Zona horaria encontrada: ${encontrado.zona}`;
+        selector.value = encontrado.zona;
+        actualizarHora();
+      } else {
+        resultadoBusqueda.textContent = `No se encontró la zona horaria para "${inputPais.value}".`;
+      }
+    });
+
+    // Actualizar la hora cuando se cambia la zona horaria manualmente
+    selector.addEventListener('change', () => {
+      resultadoBusqueda.textContent = ''; // Limpiar mensajes de búsqueda previos
+      actualizarHora();
+    });
+
+    // Actualización automática cada segundo para la hora en vivo
+    setInterval(actualizarHora, 1000);
+
+    // Renderizado inicial al cargar la página
+    actualizarHora();
+  </script>
+
+</body>
+</html>
